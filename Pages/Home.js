@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native';
+import { FlatList, Image, StyleSheet, Text, TextInput, View } from 'react-native';
 import axios from 'axios';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import routes from '../Utilies/routes';
-const Home = ({ navigation }) => {
+const Home = () => {
     const imgPath = "https://image.tmdb.org/t/p/w500/";
     //useEffect(callback func,array of dependency)
     //useState to render the component once the data is recieved from the API
     const [movies, setMovies] = useState([]);
+    const [searchQuery, setSearchQuery] = useState('');
     useEffect(() => {
         axios.get("https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=9813ce01a72ca1bd2ae25f091898b1c7")
             .then((res) => setMovies(res.data.results));
@@ -32,8 +33,13 @@ const Home = ({ navigation }) => {
                             height: 300,
                         }}
                     ></Image>
+                    <Text>{item.title}</Text>
                 </TouchableOpacity>
     );
+
+    const searchedMovies = movies.filter((movie)=>
+    movie.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
     return (
         //we can use useNavigation instead of the navigation prop
         // const {navigate} = useNavigation();
@@ -41,9 +47,17 @@ const Home = ({ navigation }) => {
 
         //we can send the movie id as a parameter in the navigate
         //then we will recieve the parameter in the details page
-        <View>
+        <View style={styles.container}>
+            <TextInput
+                style={styles.searchBar}
+                placeholder='search for a movie ...'
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+            >
+
+            </TextInput>
             <FlatList
-                data={movies}
+                data={searchedMovies}
                 renderItem={renderItem}
                 keyExtractor={(item)=>item.id.toString()}
             ></FlatList>
@@ -51,6 +65,25 @@ const Home = ({ navigation }) => {
     );
 }
 
-const styles = StyleSheet.create({})
+const styles = StyleSheet.create({
+
+    container: {
+        flex: 1,
+        padding: 10,
+        backgroundColor: '#fff',
+    },
+    searchBar: {
+        height: 40,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 5,
+        paddingHorizontal: 10,
+        marginBottom: 10,
+    },
+    movieTitle: {
+        textAlign: 'center',
+        marginTop: 5,
+    }
+})
 
 export default Home;
