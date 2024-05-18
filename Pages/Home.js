@@ -1,34 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { Button, FlatList, Image, Modal, StyleSheet, Text, TextInput, View } from 'react-native';
-import axios from 'axios';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import routes from '../Utilies/routes';
+import { getMovies } from './getMovies';
 const Home = () => {
     const imgPath = "https://image.tmdb.org/t/p/w500/";
     //useEffect(callback func,array of dependency)
     //useState to render the component once the data is recieved from the API
-    const [movies, setMovies] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [filterVisible, setFilterVisible] = useState(false);
     const [selectedFilter, setSelectedFilter] = useState('popular');
-
-
-    const fetchMovies = (filter)=>{
-        const urls ={
-            popular: "https://api.themoviedb.org/3/movie/popular?api_key=00f378e7895b0d9b5b8653e265d683e1",
-            top_rated: "https://api.themoviedb.org/3/movie/top_rated?api_key=00f378e7895b0d9b5b8653e265d683e1",
-            upcoming: "https://api.themoviedb.org/3/movie/upcoming?api_key=00f378e7895b0d9b5b8653e265d683e1",
-            now_playing: "https://api.themoviedb.org/3/movie/now_playing?api_key=00f378e7895b0d9b5b8653e265d683e1"
-        };
-        axios.get(urls[filter]).then((res)=>setMovies(res.data.results))
-    }
-    useEffect(() => {
-        fetchMovies(selectedFilter)
-        // fetch("https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=9813ce01a72ca1bd2ae25f091898b1c7")
-        // .then((res)=>res.json())
-        // .then((data)=>setMovies(data.results))
-    }, [selectedFilter]);
+    //update this component to use the created custom hook
+    const {data:movies=[],isLoading,error}= getMovies(selectedFilter);
 
     const {navigate} = useNavigation();
 
@@ -51,6 +35,12 @@ const Home = () => {
 
     const searchedMovies = movies.filter((movie)=>
     movie.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    //the data didn't come yet
+    if(isLoading)return <Text>Loading Data...</Text>
+
+    //error occurs while getting data
+    if(error) return <Text>Error...</Text>
 
     return (
         //we can use useNavigation instead of the navigation prop
