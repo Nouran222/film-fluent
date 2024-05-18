@@ -4,6 +4,8 @@ import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import routes from '../Utilies/routes';
 import { getMovies } from './getMovies';
+import { Card, IconButton } from 'react-native-paper';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const Home = () => {
     const imgPath = "https://image.tmdb.org/t/p/w500/";
     //useEffect(callback func,array of dependency)
@@ -20,17 +22,39 @@ const Home = () => {
         navigate(routes.details,movie)
     }
 
+    const handleAddToFavorites = async(movie) => {
+        // use react storage to save favorites
+        try {
+            const storedMovies = await AsyncStorage.getItem('favoriteMovies');
+            const favoriteMovies = storedMovies ? JSON.parse(storedMovies) : [];
+            const updatedMovies = [...favoriteMovies, movie];
+            await AsyncStorage.setItem('favoriteMovies', JSON.stringify(updatedMovies));
+            console.log(`Added ${movie.title} to favorites`);
+        } catch (error) {
+            console.error('Error saving favorite movie', error);
+        }
+    };
+
     const renderItem =  ({item})=>(
-        <TouchableOpacity onPress={()=>handleImagePress(item)}>
-                    <Image
-                        source={{
-                            uri: `${imgPath}${item.poster_path}`,
-                            width: 200,
-                            height: 300,
-                        }}
-                    ></Image>
-                    <Text>{item.title}</Text>
-                </TouchableOpacity>
+
+        <Card style={styles.card}>
+            <TouchableOpacity onPress={()=>handleImagePress(item)}>
+                <Card.Cover source={{uri: `${imgPath}${item.poster_path}`}}
+                    style={styles.image}
+                >
+                </Card.Cover>
+            </TouchableOpacity>
+            <Card.Title
+                title={item.title}
+                right={(props)=>(
+                    <IconButton
+                        {...props}
+                        icon="heart"
+                        onPress={()=>handleAddToFavorites(item)}
+                    ></IconButton>
+                )}
+            ></Card.Title>
+        </Card>
     );
 
     const searchedMovies = movies.filter((movie)=>
@@ -108,9 +132,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         marginBottom: 10,
     },
-    movieTitle: {
-        textAlign: 'center',
-        marginTop: 5,
+    card: {
+        marginBottom: 10,
+    },
+    image: {
+        height: 300,
     },
     filterButton: {
         height: 40,
@@ -140,7 +166,7 @@ const styles = StyleSheet.create({
     modalTitle: {
         fontSize: 18,
         marginBottom: 10,
-    }
+    },
 })
 
 export default Home;
