@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FlatList, Image, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Button, FlatList, Image, Modal, StyleSheet, Text, TextInput, View } from 'react-native';
 import axios from 'axios';
 import { TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -10,13 +10,25 @@ const Home = () => {
     //useState to render the component once the data is recieved from the API
     const [movies, setMovies] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
+    const [filterVisible, setFilterVisible] = useState(false);
+    const [selectedFilter, setSelectedFilter] = useState('popular');
+
+
+    const fetchMovies = (filter)=>{
+        const urls ={
+            popular: "https://api.themoviedb.org/3/movie/popular?api_key=00f378e7895b0d9b5b8653e265d683e1",
+            top_rated: "https://api.themoviedb.org/3/movie/top_rated?api_key=00f378e7895b0d9b5b8653e265d683e1",
+            upcoming: "https://api.themoviedb.org/3/movie/upcoming?api_key=00f378e7895b0d9b5b8653e265d683e1",
+            now_playing: "https://api.themoviedb.org/3/movie/now_playing?api_key=00f378e7895b0d9b5b8653e265d683e1"
+        };
+        axios.get(urls[filter]).then((res)=>setMovies(res.data.results))
+    }
     useEffect(() => {
-        axios.get("https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=9813ce01a72ca1bd2ae25f091898b1c7")
-            .then((res) => setMovies(res.data.results));
+        fetchMovies(selectedFilter)
         // fetch("https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=9813ce01a72ca1bd2ae25f091898b1c7")
         // .then((res)=>res.json())
         // .then((data)=>setMovies(data.results))
-    }, []);
+    }, [selectedFilter]);
 
     const {navigate} = useNavigation();
 
@@ -54,13 +66,39 @@ const Home = () => {
                 value={searchQuery}
                 onChangeText={setSearchQuery}
             >
-
             </TextInput>
+            <TouchableOpacity 
+                style={styles.filterButton}
+                onPress={()=>setFilterVisible(true)}
+            >
+                <Text 
+                    style={styles.filterButtonText}
+                >Filter</Text>
+            </TouchableOpacity>
+
+
             <FlatList
                 data={searchedMovies}
                 renderItem={renderItem}
                 keyExtractor={(item)=>item.id.toString()}
             ></FlatList>
+
+            <Modal
+                visible={filterVisible}
+                transparent = {true}
+                animationType='slide'
+            >
+                <View style={styles.modalContainer}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Choose a filter</Text>
+                        <Button title="Popular" onPress={() => { setSelectedFilter('popular'); setFilterVisible(false); }} />
+                        <Button title="Top Rated" onPress={() => { setSelectedFilter('top_rated'); setFilterVisible(false); }} />
+                        <Button title="Upcoming" onPress={() => { setSelectedFilter('upcoming'); setFilterVisible(false); }} />
+                        <Button title="Now Playing" onPress={() => { setSelectedFilter('now_playing'); setFilterVisible(false); }} />
+                        <Button title="Cancel" onPress={() => setFilterVisible(false)} />
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -83,6 +121,35 @@ const styles = StyleSheet.create({
     movieTitle: {
         textAlign: 'center',
         marginTop: 5,
+    },
+    filterButton: {
+        height: 40,
+        borderColor: '#ccc',
+        borderWidth: 1,
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    filterButtonText: {
+        fontSize: 16,
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    modalContent: {
+        width: 300,
+        padding: 20,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        marginBottom: 10,
     }
 })
 
