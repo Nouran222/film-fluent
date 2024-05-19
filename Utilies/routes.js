@@ -3,7 +3,7 @@
 const routes= Object.freeze({
     home:'Home',
     about:'About',
-    details:'details',
+    details:'Details',
     favorites:'Favorites',
     drawer:'Drawer'
 })

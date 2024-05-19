@@ -1,26 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FlatList } from 'react-native-gesture-handler';
 import { Card, IconButton } from 'react-native-paper';
+import { useIsFocused } from '@react-navigation/native';
 
 const Favorites = () => {
-    const [favoriteMovies,setFavoriteMovies] = useState([]);
-     //get the movies stored in local storage and display them
-     useEffect(()=>{
-        const loadFavorites = async()=>{
-            try{
-                const storedMovies = await AsyncStorage.getItem('favoriteMovies');
-                if(storedMovies) setFavoriteMovies(JSON.parse(storedMovies))
-            }catch(error) {
-                console.error('Error loading favorite movies', error);
-            }
-        };
-        //call
-        loadFavorites();
-     },[]);
+    const isFocused = useIsFocused();
+    const [favoriteMovies, setFavoriteMovies] = useState([]);
 
-     const handleRemoveFromFavorites = async(movie)=>{
+    const loadFavorites = useCallback(async () => {
+        try {
+            const storedMovies = await AsyncStorage.getItem('favoriteMovies');
+            if (storedMovies) setFavoriteMovies(JSON.parse(storedMovies));
+        } catch (error) {
+            console.error('Error loading favorite movies', error);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (isFocused) {
+            loadFavorites();
+        }
+    }, [isFocused, loadFavorites]);
+
+    const handleRemoveFromFavorites = async (movie) => {
         try {
             const updatedMovies = favoriteMovies.filter(favMovie => favMovie.id !== movie.id);
             setFavoriteMovies(updatedMovies);
@@ -29,23 +33,24 @@ const Favorites = () => {
         } catch (error) {
             console.error('Error removing favorite movie', error);
         }
-     }
+    };
 
-     const renderItem = ({ item }) => (
+    const renderItem = ({ item }) => (
         <Card style={styles.card}>
             <Card.Cover source={{ uri: `https://image.tmdb.org/t/p/w500/${item.poster_path}` }} style={styles.image} />
-            <Card.Title title={item.title}
-            right={(props)=>(
-                <IconButton
-                    {...props}
-                    icon="delete"
-                    onPress={()=>handleRemoveFromFavorites(item)}
-                ></IconButton>
-            )}
-            >
-            </Card.Title>
+            <Card.Title
+                title={item.title}
+                right={(props) => (
+                    <IconButton
+                        {...props}
+                        icon="delete"
+                        onPress={() => handleRemoveFromFavorites(item)}
+                    />
+                )}
+            />
         </Card>
     );
+
     return (
         <View style={styles.container}>
             {favoriteMovies.length > 0 ? (
@@ -59,10 +64,9 @@ const Favorites = () => {
             )}
         </View>
     );
-}
+};
 
 const styles = StyleSheet.create({
-
     container: {
         flex: 1,
         padding: 10,
@@ -74,6 +78,6 @@ const styles = StyleSheet.create({
     image: {
         height: 300,
     },
-})
+});
 
 export default Favorites;

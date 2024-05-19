@@ -20,14 +20,7 @@ const StackNavigation = () => {
                 name={routes.drawer}
                 component={DrawerNavigation}
                 options={{
-                    // headerShown:false
-                    headerTitle: 'Film Fluent',
-                    // headerStyle: {
-                    //     backgroundColor: 'gray'
-                    // },
-                    // headerTintColor: 'white',
-                    // headerTitleAlign: 'center',
-                    // headerTitleStyle:{fontSize:25}
+                    headerShown:false
                 }}
             ></stack.Screen>
             <stack.Screen
